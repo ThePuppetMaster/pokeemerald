@@ -96,6 +96,34 @@ u8 ScriptGiveEgg(u16 species)
     return GiveMonToPlayer(&mon);
 }
 
+u8 ScriptGiveStarter(u16 species)
+{
+    u16 nationalDexNum;
+    int sentToPc;
+    u8 heldItem[2];
+    struct Pokemon mon;
+    u32 personality = 0xE85091A9; // Only legal PID for starters with MAX_PER_STAT_IVS
+
+    CreateMon(&mon, species, 5, MAX_PER_STAT_IVS, TRUE, personality, OT_ID_PLAYER_ID, 0);
+
+    heldItem[0] = ITEM_NONE;
+    heldItem[1] = ITEM_NONE >> 8;
+    SetMonData(&mon, MON_DATA_HELD_ITEM, heldItem);
+
+    sentToPc = GiveMonToPlayer(&mon);
+    nationalDexNum = SpeciesToNationalPokedexNum(species);
+
+    switch (sentToPc)
+    {
+    case MON_GIVEN_TO_PARTY:
+    case MON_GIVEN_TO_PC:
+        GetSetPokedexFlag(nationalDexNum, FLAG_SET_SEEN);
+        GetSetPokedexFlag(nationalDexNum, FLAG_SET_CAUGHT);
+        break;
+    }
+    return sentToPc;
+}
+
 void HasEnoughMonsForDoubleBattle(void)
 {
     switch (GetMonsStateToDoubles())
